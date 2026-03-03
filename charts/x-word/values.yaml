@@ -38,9 +38,11 @@ env:
 ingress:
   enabled: true
   className: nginx
-  path: /x-word
-  pathType: Prefix
-  rewriteTarget: /
+  path: /x-word(/|$)(.*)
+  pathType: ImplementationSpecific
+  rewriteTarget: /$2
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
   hosts:
     - momofamily.tplinkdns.com
   # cert-manager ClusterIssuer for TLS (e.g. letsencrypt-prod on microk8s)
