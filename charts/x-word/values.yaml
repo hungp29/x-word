@@ -34,3 +34,18 @@ readinessProbe:
 
 env:
   HTTP_PORT: "8080"
+
+ingress:
+  enabled: true
+  className: nginx
+  path: /x-word
+  pathType: Prefix
+  rewriteTarget: /
+  hosts:
+    - momofamily.tplinkdns.com
+  # cert-manager ClusterIssuer for TLS (e.g. letsencrypt-prod on microk8s)
+  clusterIssuer: letsencrypt-prod
+  tls:
+    - secretName: x-word-tls
+      hosts:
+        - momofamily.tplinkdns.com

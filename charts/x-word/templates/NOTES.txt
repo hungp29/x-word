@@ -1,5 +1,14 @@
 x-word has been deployed.
 
+{{- if .Values.ingress.enabled }}
+
+Public URL (ingress path /x-word):
+  {{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ . }}{{ $.Values.ingress.path }}
+  {{- end }}
+  e.g. {{ .Values.ingress.path }}/health for health checks.
+{{- end }}
+
 For local access, port-forward the service:
   kubectl port-forward svc/{{ include "x-word.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
 
