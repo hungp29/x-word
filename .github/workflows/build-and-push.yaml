@@ -49,6 +49,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Update values.yaml with image tag
+        run: |
+          IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          sed -i "s|^  repository: .*|  repository: ${IMAGE_REF}|" ${{ env.CHART_PATH }}/values.yaml
+          sed -i "s|^  tag: .*|  tag: ${{ steps.tag.outputs.tag }}|" ${{ env.CHART_PATH }}/values.yaml
+
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:

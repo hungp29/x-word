@@ -37,6 +37,6 @@ jobs:
 
       - name: Trigger Build and Push workflow
         run: |
-          gh workflow run dockerize.yaml --ref "${{ steps.create-tag.outputs.tag }}"
+          gh workflow run build-and-push.yaml --ref "${{ steps.create-tag.outputs.tag }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
