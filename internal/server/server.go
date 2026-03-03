@@ -9,6 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hupham/x-word/internal/config"
+	"github.com/hupham/x-word/internal/fetcher"
+	"github.com/hupham/x-word/internal/handler"
+	"github.com/hupham/x-word/internal/parser"
+	"github.com/hupham/x-word/internal/service"
 )
 
 // Server wraps the Gin engine and config. No shared mutable request/session state.
@@ -31,6 +35,15 @@ func New(cfg *config.Config, logger *slog.Logger) *Server {
 	engine.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"service": "x-word", "message": "hello from x-word", "time": time.Now().Format(time.RFC3339)})
 	})
+
+	f := fetcher.NewHTTPFetcher()
+	p := parser.NewCambridgeParser()
+	svc := service.NewWordService(f, p)
+
+	h := handler.NewWordHandler(svc)
+
+	engine.GET("/word/:word", h.GetWord)
+	engine.POST("/words", h.GetWords)
 
 	return &Server{engine: engine, cfg: cfg, logger: logger}
 }
