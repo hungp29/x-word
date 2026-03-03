@@ -29,23 +29,14 @@ func New(cfg *config.Config, logger *slog.Logger) *Server {
 	engine.Use(gin.Recovery())
 	engine.Use(requestLogger(logger))
 
-	engine.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
-	engine.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"service": "x-word", "message": "hello from x-word", "time": time.Now().Format(time.RFC3339)})
-	})
-
 	f := fetcher.NewHTTPFetcher()
 	svc := service.NewWordService(f, map[service.Dictionary]service.Parser{
 		service.DictionaryEnglish:           parser.NewCambridgeParser(),
 		service.DictionaryEnglishVietnamese: parser.NewEnglishVietnameseParser(),
 	})
-
 	h := handler.NewWordHandler(svc)
 
-	engine.GET("/word/:word", h.GetWord)
-	engine.POST("/words", h.GetWords)
+	registerRoutes(engine, h)
 
 	return &Server{engine: engine, cfg: cfg, logger: logger}
 }
@@ -64,6 +55,19 @@ func (s *Server) Run(ctx context.Context) error {
 	}()
 	s.logger.Info("http server listening", "port", s.cfg.HTTPPort)
 	return srv.ListenAndServe()
+}
+
+// registerRoutes wires all API paths to their handlers.
+func registerRoutes(r *gin.Engine, h *handler.WordHandler) {
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"service": "x-word", "message": "hello from x-word", "time": time.Now().Format(time.RFC3339)})
+	})
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
+	r.GET("/word/:word", h.GetWord)
+	r.POST("/words", h.GetWords)
 }
 
 // requestLogger returns a Gin middleware that logs request method, path, and status (structured).
