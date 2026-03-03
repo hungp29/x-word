@@ -9,7 +9,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /xword ./cmd/xword
 
 # Runtime stage
-FROM scratch
+FROM gcr.io/distroless/base-debian12
 COPY --from=builder /xword /xword
 EXPOSE 8080
 ENV HTTP_PORT=8080
