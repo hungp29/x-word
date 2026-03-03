@@ -28,7 +28,7 @@ jobs:
         run: |
           DATE_TIME=$(date -u +%Y%m%d-%H%M%S)
           SHA_SHORT="${GITHUB_SHA:0:7}"
-          TAG="${DATE_TIME}-${SHA_SHORT}"
+          TAG="${DATE_TIME}-${SHA_SHORT}-${{ github.run_number }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "$TAG"

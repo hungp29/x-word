@@ -26,9 +26,8 @@ jobs:
       - name: Set tag
         id: tag
         run: |
-          # Single tag for both image and chart: <git-tag>-run_number
-          TAG="${{ github.ref_name }}-${{ github.run_number }}"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          # Use ref as tag (from release: DATE_TIME-SHA_SHORT-run_number, or tag push)
+          echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
