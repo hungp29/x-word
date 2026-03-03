@@ -23,6 +23,7 @@ jobs:
           fetch-depth: 0
 
       - name: Create and push release tag
+        id: create-tag
         run: |
           DATE_TIME=$(date -u +%Y%m%d-%H%M%S)
           SHA_SHORT="${GITHUB_SHA:0:7}"
@@ -32,3 +33,9 @@ jobs:
           git tag "$TAG"
           git push origin "$TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger Build and Push workflow
+        run: |
+          gh workflow run dockerize.yaml --ref "${{ steps.create-tag.outputs.tag }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

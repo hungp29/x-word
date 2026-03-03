@@ -3,6 +3,8 @@ name: Build and Push Docker Image
 on:
   push:
     tags: ['*']
+  workflow_dispatch:
+    # When triggered by Cut Release workflow, ref is set to the new tag
 
 env:
   REGISTRY: ghcr.io
