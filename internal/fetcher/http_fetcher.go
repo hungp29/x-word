@@ -1,7 +1,6 @@
 package fetcher
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -18,9 +17,7 @@ func NewHTTPFetcher() *HTTPFetcher {
 	}
 }
 
-func (h *HTTPFetcher) Fetch(word string) (*http.Response, error) {
-	url := fmt.Sprintf("https://dictionary.cambridge.org/dictionary/english/%s", word)
-
+func (h *HTTPFetcher) Fetch(url string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

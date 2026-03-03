@@ -2,6 +2,7 @@ package model
 
 type Word struct {
 	Text         string    `json:"text"`
+	Phonetic     string    `json:"phonetic"`
 	PhoneticUK   string    `json:"phonetic_uk"`
 	PhoneticUS   string    `json:"phonetic_us"`
 	AudioUK      string    `json:"audio_uk"`

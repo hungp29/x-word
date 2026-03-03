@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hupham/x-word/internal/model"
-
 	"github.com/PuerkitoBio/goquery"
+	"github.com/hupham/x-word/internal/model"
 )
 
+// CambridgeParser parses the English-only Cambridge dictionary page.
+// Definitions are extracted from .def elements.
 type CambridgeParser struct{}
 
 func NewCambridgeParser() *CambridgeParser {
@@ -24,45 +25,34 @@ func (p *CambridgeParser) Parse(resp *http.Response) (*model.Word, error) {
 	}
 
 	word := &model.Word{}
-
 	word.Text = doc.Find(".headword").First().Text()
 	word.PhoneticUK = doc.Find(".uk .pron").First().Text()
 	word.PhoneticUS = doc.Find(".us .pron").First().Text()
 
-	// Get audio URLs
-	ukSrc, exists := doc.Find(".uk.dpron-i source").First().Attr("src")
-	if exists {
-		word.AudioUK = "https://dictionary.cambridge.org" + strings.TrimSpace(ukSrc)
+	if src, exists := doc.Find(".uk.dpron-i source").First().Attr("src"); exists {
+		word.AudioUK = "https://dictionary.cambridge.org" + strings.TrimSpace(src)
 	}
-	usSrc, exists := doc.Find(".us.dpron-i source").First().Attr("src")
-	if exists {
-		word.AudioUS = "https://dictionary.cambridge.org" + strings.TrimSpace(usSrc)
+	if src, exists := doc.Find(".us.dpron-i source").First().Attr("src"); exists {
+		word.AudioUS = "https://dictionary.cambridge.org" + strings.TrimSpace(src)
 	}
 
-	// Get all unique parts of speech
 	posMap := make(map[string]struct{})
-	doc.Find(".posgram .pos").Each(func(i int, s *goquery.Selection) {
-		pos := s.Text()
-		if pos != "" {
+	doc.Find(".posgram .pos").Each(func(_ int, s *goquery.Selection) {
+		if pos := strings.TrimSpace(s.Text()); pos != "" {
 			posMap[pos] = struct{}{}
 		}
 	})
-
-	for p := range posMap {
-		word.PartOfSpeech = append(word.PartOfSpeech, p)
+	for pos := range posMap {
+		word.PartOfSpeech = append(word.PartOfSpeech, pos)
 	}
 
-	// Get all meanings
-	doc.Find(".def-block").Each(func(i int, s *goquery.Selection) {
-		def := s.Find(".def").Text()
-
+	doc.Find(".def-block").Each(func(_ int, s *goquery.Selection) {
 		var examples []string
-		s.Find(".examp").Each(func(j int, e *goquery.Selection) {
+		s.Find(".examp").Each(func(_ int, e *goquery.Selection) {
 			examples = append(examples, strings.TrimSpace(e.Text()))
 		})
-
 		word.Meanings = append(word.Meanings, model.Meaning{
-			Definition: def,
+			Definition: strings.TrimSpace(s.Find(".def").Text()),
 			Examples:   examples,
 		})
 	})

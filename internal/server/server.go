@@ -37,8 +37,10 @@ func New(cfg *config.Config, logger *slog.Logger) *Server {
 	})
 
 	f := fetcher.NewHTTPFetcher()
-	p := parser.NewCambridgeParser()
-	svc := service.NewWordService(f, p)
+	svc := service.NewWordService(f, map[service.Dictionary]service.Parser{
+		service.DictionaryEnglish:           parser.NewCambridgeParser(),
+		service.DictionaryEnglishVietnamese: parser.NewEnglishVietnameseParser(),
+	})
 
 	h := handler.NewWordHandler(svc)
 
