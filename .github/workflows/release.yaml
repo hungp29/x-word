@@ -14,6 +14,7 @@ jobs:
 
     permissions:
       contents: write
+      actions: write   # required to trigger workflow_dispatch on dockerize.yaml
 
     steps:
       - name: Checkout
