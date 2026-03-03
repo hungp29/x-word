@@ -1,0 +1,6 @@
+x-word has been deployed.
+
+For local access, port-forward the service:
+  kubectl port-forward svc/{{ include "x-word.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+
+Then open http://localhost:{{ .Values.service.port }}/health
