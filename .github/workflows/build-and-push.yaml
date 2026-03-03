@@ -67,4 +67,32 @@ jobs:
       - name: Package and push chart
         run: |
           helm package ${{ env.CHART_PATH }} --version "${{ steps.tag.outputs.tag }}"
-          helm push x-word-${{ steps.tag.outputs.tag }}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}
+          helm push x-word-${{ steps.tag.outputs.tag }}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}"
+
+      - name: Open PR in x-deployk8s to update chart version
+        env:
+          DEPLOYK8S_REPO_TOKEN: ${{ secrets.DEPLOYK8S_REPO_TOKEN }}
+        run: |
+          if [ -z "$DEPLOYK8S_REPO_TOKEN" ]; then
+            echo "Skipping x-deployk8s PR: DEPLOYK8S_REPO_TOKEN not set"
+            exit 0
+          fi
+          TAG="${{ steps.tag.outputs.tag }}"
+          REPO="${{ github.repository_owner }}/x-deployk8s"
+          BRANCH="chore/update-x-word-chart-${TAG}"
+          git clone --depth 1 "https://x-access-token:${DEPLOYK8S_REPO_TOKEN}@github.com/${REPO}.git" deployk8s
+          cd deployk8s
+          sed -i "s/targetRevision: \".*\"/targetRevision: \"${TAG}\"/" applications/x-word.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add applications/x-word.yaml
+          git diff --staged --quiet && { echo "No change in targetRevision"; exit 0; }
+          git commit -m "chore(x-word): set ArgoCD targetRevision to ${TAG}"
+          git push -u origin "$BRANCH"
+          GH_TOKEN="$DEPLOYK8S_REPO_TOKEN" gh pr create \
+            --repo "$REPO" \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore(x-word): update ArgoCD chart version to ${TAG}" \
+            --body "Auto-generated PR to bump x-word chart \`targetRevision\` for ArgoCD to \`${TAG}\`."
