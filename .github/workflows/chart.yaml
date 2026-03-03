@@ -1,0 +1,45 @@
+name: Build and Push Helm Chart
+
+on:
+  push:
+    tags: ['*']
+  workflow_dispatch:
+    # When triggered by Cut Release workflow, ref is set to the new tag
+
+env:
+  REGISTRY: ghcr.io
+  CHART_NAME: x-word
+  CHART_PATH: charts/x-word
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set chart tag
+        id: tag
+        run: |
+          # Same as dockerize: <git tag>-run_number
+          CHART_TAG="${{ github.ref_name }}-${{ github.run_number }}"
+          echo "tag=${CHART_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.16.0'
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Package and push chart
+        run: |
+          helm package ${{ env.CHART_PATH }} --version "${{ steps.tag.outputs.tag }}"
+          helm push x-word-${{ steps.tag.outputs.tag }}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}
