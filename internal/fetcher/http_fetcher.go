@@ -21,7 +21,10 @@ func NewHTTPFetcher() *HTTPFetcher {
 func (h *HTTPFetcher) Fetch(word string) (*http.Response, error) {
 	url := fmt.Sprintf("https://dictionary.cambridge.org/dictionary/english/%s", word)
 
-	req, _ := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Set("User-Agent", "Mozilla/5.0")
 
 	return h.client.Do(req)

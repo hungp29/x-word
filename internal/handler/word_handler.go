@@ -13,16 +13,10 @@ type WordService interface {
 }
 
 type WordHandler struct {
-	service interface {
-		GetWord(string) (*model.Word, error)
-		GetWords([]string) ([]*model.Word, error)
-	}
+	service WordService
 }
 
-func NewWordHandler(svc interface {
-	GetWord(string) (*model.Word, error)
-	GetWords([]string) ([]*model.Word, error)
-}) *WordHandler {
+func NewWordHandler(svc WordService) *WordHandler {
 	return &WordHandler{service: svc}
 }
 

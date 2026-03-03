@@ -7,6 +7,8 @@ import (
 	"github.com/hupham/x-word/internal/model"
 )
 
+const workerLimit = 3
+
 type Fetcher interface {
 	Fetch(string) (*http.Response, error)
 }
@@ -33,47 +35,48 @@ func (s *WordService) GetWord(word string) (*model.Word, error) {
 }
 
 func (s *WordService) GetWords(words []string) ([]*model.Word, error) {
-	var wg sync.WaitGroup
-	resultChan := make(chan *model.Word, len(words))
-	errorChan := make(chan error, len(words))
+	var (
+		mu      sync.Mutex
+		wg      sync.WaitGroup
+		results = make([]*model.Word, 0, len(words))
+		firstErr error
+	)
 
-	workerLimit := 3
 	sem := make(chan struct{}, workerLimit)
 
 	for _, word := range words {
 		wg.Add(1)
 		go func(word string) {
 			defer wg.Done()
-
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
 			resp, err := s.fetcher.Fetch(word)
 			if err != nil {
-				errorChan <- err
+				mu.Lock()
+				if firstErr == nil {
+					firstErr = err
+				}
+				mu.Unlock()
 				return
 			}
 
-			parsedWord, err := s.parser.Parse(resp)
+			parsed, err := s.parser.Parse(resp)
 			if err != nil {
-				errorChan <- err
+				mu.Lock()
+				if firstErr == nil {
+					firstErr = err
+				}
+				mu.Unlock()
 				return
 			}
 
-			resultChan <- parsedWord
+			mu.Lock()
+			results = append(results, parsed)
+			mu.Unlock()
 		}(word)
 	}
 
-	go func() {
-		wg.Wait()
-		close(resultChan)
-		close(errorChan)
-	}()
-
-	results := make([]*model.Word, 0, len(words))
-	for result := range resultChan {
-		results = append(results, result)
-	}
-
-	return results, nil
+	wg.Wait()
+	return results, firstErr
 }

@@ -16,6 +16,7 @@ func NewCambridgeParser() *CambridgeParser {
 }
 
 func (p *CambridgeParser) Parse(resp *http.Response) (*model.Word, error) {
+	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
