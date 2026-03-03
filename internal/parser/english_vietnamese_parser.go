@@ -9,12 +9,12 @@ import (
 )
 
 // EnglishVietnameseParser parses the Cambridge English-Vietnamese dictionary page.
-// Definitions are Vietnamese translations extracted from .trans elements;
-// examples are taken from .examp (English sentence) paired with .trans inside it.
-type EnglishVietnameseParser struct{}
+type EnglishVietnameseParser struct {
+	sel selectors
+}
 
 func NewEnglishVietnameseParser() *EnglishVietnameseParser {
-	return &EnglishVietnameseParser{}
+	return &EnglishVietnameseParser{sel: englishVietnameseSelectors}
 }
 
 func (p *EnglishVietnameseParser) Parse(resp *http.Response) (*model.Word, error) {
@@ -26,11 +26,11 @@ func (p *EnglishVietnameseParser) Parse(resp *http.Response) (*model.Word, error
 	}
 
 	word := &model.Word{}
-	word.Text = doc.Find(".english-vietnamese .di-title").First().Text()
-	word.Phonetic = doc.Find(".english-vietnamese .pron").First().Text()
+	word.Text = doc.Find(p.sel.headword).First().Text()
+	word.Phonetic = doc.Find(p.sel.phonetic).First().Text()
 
 	posMap := make(map[string]struct{})
-	doc.Find(".english-vietnamese .pos").Each(func(_ int, s *goquery.Selection) {
+	doc.Find(p.sel.pos).Each(func(_ int, s *goquery.Selection) {
 		if pos := strings.TrimSpace(s.Text()); pos != "" {
 			posMap[pos] = struct{}{}
 		}
@@ -39,20 +39,20 @@ func (p *EnglishVietnameseParser) Parse(resp *http.Response) (*model.Word, error
 		word.PartOfSpeech = append(word.PartOfSpeech, pos)
 	}
 
-	doc.Find(".def-block").Each(func(_ int, s *goquery.Selection) {
+	doc.Find(p.sel.defBlock).Each(func(_ int, s *goquery.Selection) {
 		// Prefer the Vietnamese translation; fall back to the English gloss.
-		translation := strings.TrimSpace(s.Find(".trans").First().Text())
-		if translation == "" {
-			translation = strings.TrimSpace(s.Find(".def").Text())
+		definition := strings.TrimSpace(s.Find(p.sel.translation).First().Text())
+		if definition == "" {
+			definition = strings.TrimSpace(s.Find(p.sel.definition).Text())
 		}
 
 		var examples []string
-		s.Find(".examp").Each(func(_ int, e *goquery.Selection) {
+		s.Find(p.sel.example).Each(func(_ int, e *goquery.Selection) {
 			examples = append(examples, strings.TrimSpace(e.Text()))
 		})
 
 		word.Meanings = append(word.Meanings, model.Meaning{
-			Definition: translation,
+			Definition: definition,
 			Examples:   examples,
 		})
 	})
