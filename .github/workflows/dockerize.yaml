@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push Image and Chart
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/x-word
+  CHART_PATH: charts/x-word
 
 jobs:
   build:
@@ -22,15 +23,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set image tag env
+      - name: Set tag
         id: tag
         run: |
-          # Release tag only: image tag = <git tag>-run_number
-          IMAGE_TAG="${{ github.ref_name }}-${{ github.run_number }}"
-          echo "tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
-          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
-          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          # Single tag for both image and chart: <git-tag>-run_number
+          TAG="${{ github.ref_name }}-${{ github.run_number }}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -42,11 +40,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ steps.tag.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.16.0'
+
+      - name: Login to GHCR (Helm)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Package and push chart
+        run: |
+          helm package ${{ env.CHART_PATH }} --version "${{ steps.tag.outputs.tag }}"
+          helm push x-word-${{ steps.tag.outputs.tag }}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}

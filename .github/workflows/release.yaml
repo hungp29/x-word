@@ -35,9 +35,8 @@ jobs:
           git push origin "$TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Trigger Build and Push workflows
+      - name: Trigger Build and Push workflow
         run: |
           gh workflow run dockerize.yaml --ref "${{ steps.create-tag.outputs.tag }}"
-          gh workflow run chart.yaml --ref "${{ steps.create-tag.outputs.tag }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
