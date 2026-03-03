@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hupham/x-word/internal/config"
@@ -28,7 +29,7 @@ func New(cfg *config.Config, logger *slog.Logger) *Server {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 	engine.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"service": "x-word", "message": "hello"})
+		c.JSON(http.StatusOK, gin.H{"service": "x-word", "message": "hello from x-word", "time": time.Now().Format(time.RFC3339)})
 	})
 
 	return &Server{engine: engine, cfg: cfg, logger: logger}
