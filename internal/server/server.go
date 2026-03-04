@@ -27,6 +27,7 @@ func New(cfg *config.Config, logger *slog.Logger) *Server {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	engine.Use(gin.Recovery())
+	engine.Use(corsMiddleware(cfg.CORSAllowedOrigins))
 	engine.Use(requestLogger(logger))
 
 	f := fetcher.NewHTTPFetcher()
@@ -68,6 +69,44 @@ func registerRoutes(r *gin.Engine, h *handler.WordHandler) {
 
 	r.GET("/word/:word", h.GetWord)
 	r.POST("/words", h.GetWords)
+}
+
+// corsMiddleware sets CORS headers on every response and short-circuits OPTIONS preflight requests.
+// allowedOrigins supports exact origins or "*" to allow all.
+func corsMiddleware(allowedOrigins []string) gin.HandlerFunc {
+	originSet := make(map[string]struct{}, len(allowedOrigins))
+	allowAll := false
+	for _, o := range allowedOrigins {
+		if o == "*" {
+			allowAll = true
+			break
+		}
+		originSet[o] = struct{}{}
+	}
+
+	return func(c *gin.Context) {
+		origin := c.Request.Header.Get("Origin")
+
+		allowed := ""
+		if allowAll {
+			allowed = "*"
+		} else if _, ok := originSet[origin]; ok {
+			allowed = origin
+		}
+
+		if allowed != "" {
+			c.Header("Access-Control-Allow-Origin", allowed)
+			c.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			c.Header("Access-Control-Max-Age", "86400")
+		}
+
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	}
 }
 
 // requestLogger returns a Gin middleware that logs request method, path, and status (structured).
