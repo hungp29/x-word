@@ -1,11 +1,12 @@
-# x-word Go service
+# x-word Go service (gRPC)
 BINARY_NAME ?= xword
 MAIN_PKG    := ./cmd/xword
 GO          := go
 GOFLAGS     :=
 LDFLAGS     := -s -w
+PROTO_ROOT  ?= ../x-proto
 
-.PHONY: all build build-linux test run clean deps lint
+.PHONY: all build build-linux test run clean deps lint generate
 
 all: deps build
 
@@ -43,3 +44,10 @@ lint:
 clean:
 	rm -rf bin/
 	rm -f coverage.out coverage.html
+
+# Generate Go code from proto (requires protoc, protoc-gen-go, protoc-gen-go-grpc, or run via Docker).
+# From repo root: docker run --rm -v $(pwd):/workspace -w /workspace/x-word golang:1.22-bookworm bash -c 'apt-get update -qq && apt-get install -qq -y protobuf-compiler && go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0 && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.4.0 && protoc -I ../x-proto --go_out=. --go_opt=module=github.com/hungp29/x-word --go-grpc_out=. --go-grpc_opt=module=github.com/hungp29/x-word ../x-proto/word/v1/word.proto'
+generate:
+	protoc -I $(PROTO_ROOT) --go_out=. --go_opt=module=github.com/hungp29/x-word \
+		--go-grpc_out=. --go-grpc_opt=module=github.com/hungp29/x-word \
+		$(PROTO_ROOT)/word/v1/word.proto

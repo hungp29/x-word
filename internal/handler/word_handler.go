@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hupham/x-word/internal/model"
-	"github.com/hupham/x-word/internal/service"
+	"github.com/hungp29/x-word/internal/model"
+	"github.com/hungp29/x-word/internal/service"
 )
 
 type WordService interface {

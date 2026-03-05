@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/hupham/x-word/internal/config"
-	"github.com/hupham/x-word/internal/server"
+	"github.com/hungp29/x-word/internal/config"
+	"github.com/hungp29/x-word/internal/server"
 )
 
 func main() {

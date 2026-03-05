@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/hupham/x-word/internal/model"
+	"github.com/hungp29/x-word/internal/model"
 )
 
 // CambridgeParser parses the English-only Cambridge dictionary page.

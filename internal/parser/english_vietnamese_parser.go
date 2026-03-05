@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/hupham/x-word/internal/model"
+	"github.com/hungp29/x-word/internal/model"
 )
 
 // EnglishVietnameseParser parses the Cambridge English-Vietnamese dictionary page.

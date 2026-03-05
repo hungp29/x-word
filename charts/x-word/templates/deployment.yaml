@@ -21,27 +21,19 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
+            - name: grpc
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
           env:
-            - name: HTTP_PORT
-              value: {{ .Values.env.HTTP_PORT | quote }}
+            - name: GRPC_PORT
+              value: {{ .Values.env.GRPC_PORT | quote }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: {{ .httpGet.path }}
-              port: {{ .httpGet.port }}
-            initialDelaySeconds: {{ .initialDelaySeconds }}
-            periodSeconds: {{ .periodSeconds }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.readinessProbe }}
           readinessProbe:
-            httpGet:
-              path: {{ .httpGet.path }}
-              port: {{ .httpGet.port }}
-            initialDelaySeconds: {{ .initialDelaySeconds }}
-            periodSeconds: {{ .periodSeconds }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

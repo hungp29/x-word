@@ -8,9 +8,9 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: grpc
       protocol: TCP
-      name: http
+      name: grpc
   selector:
     app.kubernetes.io/name: {{ include "x-word.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

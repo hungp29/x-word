@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/hupham/x-word/internal/model"
+	"github.com/hungp29/x-word/internal/model"
 )
 
 const workerLimit = 3
