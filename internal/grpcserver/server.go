@@ -3,7 +3,6 @@ package grpcserver
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	wordv1 "github.com/hungp29/x-proto/gen/go/word/v1"
 	"github.com/hungp29/x-word/internal/service"
@@ -53,18 +52,4 @@ func (s *WordServiceServer) GetWords(ctx context.Context, req *wordv1.GetWordsRe
 		out[i] = wordToProto(w)
 	}
 	return &wordv1.GetWordsResponse{Words: out}, nil
-}
-
-// Ping returns service info (replaces HTTP GET /).
-func (s *WordServiceServer) Ping(ctx context.Context, req *wordv1.PingRequest) (*wordv1.PingResponse, error) {
-	return &wordv1.PingResponse{
-		Service: "x-word",
-		Message: "hello from x-word",
-		Time:    time.Now().Format(time.RFC3339),
-	}, nil
-}
-
-// Health returns health status (replaces HTTP GET /health).
-func (s *WordServiceServer) Health(ctx context.Context, req *wordv1.HealthRequest) (*wordv1.HealthResponse, error) {
-	return &wordv1.HealthResponse{Status: "ok"}, nil
 }
