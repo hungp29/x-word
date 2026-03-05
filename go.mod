@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/gin-gonic/gin v1.12.0
-	github.com/hungp29/x-proto v0.1.7
+	github.com/hungp29/x-proto v0.1.10
 	google.golang.org/grpc v1.68.0
 )
 
@@ -42,6 +42,3 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )
-
-// Use local x-proto until a tagged release includes go.mod with go 1.22+ (remove when using x-proto v0.1.6+)
-replace github.com/hungp29/x-proto => ../x-proto
