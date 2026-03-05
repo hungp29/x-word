@@ -7,13 +7,15 @@ import (
 	"net"
 	"time"
 
-	"github.com/hungp29/x-proto/gen/go/word/v1"
+	wordv1 "github.com/hungp29/x-proto/gen/go/word/v1"
 	"github.com/hungp29/x-word/internal/config"
 	"github.com/hungp29/x-word/internal/fetcher"
 	"github.com/hungp29/x-word/internal/grpcserver"
 	"github.com/hungp29/x-word/internal/parser"
 	"github.com/hungp29/x-word/internal/service"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -31,12 +33,19 @@ func New(cfg *config.Config, logger *slog.Logger) *Server {
 	}
 	s := grpc.NewServer(grpcOpts...)
 
+	// Register WordService
 	f := fetcher.NewHTTPFetcher()
 	wordSvc := service.NewWordService(f, map[service.Dictionary]service.Parser{
 		service.DictionaryEnglish:           parser.NewCambridgeParser(),
 		service.DictionaryEnglishVietnamese: parser.NewEnglishVietnameseParser(),
 	})
 	wordv1.RegisterWordServiceServer(s, grpcserver.NewWordServiceServer(wordSvc, logger))
+
+	// Register HealthService
+	healthSrv := health.NewServer()
+	healthSrv.SetServingStatus("", healthgrpc.HealthCheckResponse_SERVING)
+	healthgrpc.RegisterHealthServer(s, healthSrv)
+
 	reflection.Register(s)
 
 	return &Server{grpc: s, cfg: cfg, logger: logger}
