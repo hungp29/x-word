@@ -20,13 +20,13 @@ resources:
 
 livenessProbe:
   grpc:
-    port: grpc
+    port: 8080
   initialDelaySeconds: 5
   periodSeconds: 10
 
 readinessProbe:
   grpc:
-    port: grpc
+    port: 8080
   initialDelaySeconds: 3
   periodSeconds: 5
 
