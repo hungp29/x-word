@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/gin-gonic/gin v1.12.0
-	github.com/hungp29/x-proto v0.1.10
+	github.com/hungp29/x-proto v0.1.11
 	google.golang.org/grpc v1.68.0
 )
 
